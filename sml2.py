@@ -6,8 +6,8 @@ def discriminant_value(logdetOfcov,cov_inf,cov,mean,test_sample,prior):
     return (-0.5*(logdetOfcov) - 0.5*( np.dot(np.dot((test_sample).T,cov_inf),(test_sample)) - 2*np.dot(np.dot(np.transpose(mean),cov_inf),(test_sample)) + np.dot(np.dot(np.transpose(mean),cov_inf),mean)) + np.log(prior))
 
 def QDA(x_train_reshaped, y_train, x_test_reshaped, y_test):
-    x_train_reshaped = x_train_reshaped.astype(np.float64)/255
-    x_test_reshaped = x_test_reshaped.astype(np.float64)/255
+    x_train_reshaped = x_train_reshaped.astype(np.float64)/784
+    x_test_reshaped = x_test_reshaped.astype(np.float64)/784
 
     training_classes=[]
     for i in range(10):
@@ -63,8 +63,8 @@ def QDA(x_train_reshaped, y_train, x_test_reshaped, y_test):
 with np.load('mnist.npz') as f:
     x_train, y_train = f['x_train'], f['y_train']
     x_test,y_test = f["x_test"], f["y_test"]
-x_train_reshaped = x_train.reshape(x_train.shape[0], -1)
-x_test_reshaped = x_test.reshape(x_test.shape[0], -1)
+x_train_reshaped = x_train.reshape(x_train.shape[0], -1).astype(np.float64)/255
+x_test_reshaped = x_test.reshape(x_test.shape[0], -1).astype(np.float64)/255
 
 mat=[]
 new_y_train=[]
@@ -88,7 +88,7 @@ eig_val = eig_val[idx]
 eig_vec = eig_vec[:,idx]
 U=eig_vec
 
-X=X+mean
+# X=X+mean
 Y=np.dot(U.T,X)
 X_recon=np.dot(U,Y)
 MSE=0
@@ -97,11 +97,10 @@ for i in range(784):
         MSE+=np.sum((X[i][j]-X_recon[i][j])**2)   
 print(MSE)
 
-ps=[5,10,20,99]
+ps=[5,10,20,400,784]
 for p in ps:
     print(np.dot(U[:,0:p],Y[:p]).shape)
     Y=np.dot(U.T,X)
-    #plot the 5 images from each class:
     fig, ax = plt.subplots(10, 5, figsize=(10, 10))
     fig.suptitle(f'5 Samples of each class for p: {p}')
     plt.tight_layout()
@@ -111,7 +110,6 @@ for p in ps:
         for j in range(5):
             ax[i,j].imshow(np.reshape(np.dot(U[:,0:p],Y[:p])[:,j+(i*100)],(28,28)),cmap='gray',extent=None)
             ax[i][j].axis('off')
-    #show full screen
     # plt.get_current_fig_manager().window.state('zoomed')
     plt.show()
 
