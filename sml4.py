@@ -165,33 +165,38 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
             correct+=1
     accuracy_values.append(correct/10)
     print(f"accurracy",correct/10)
-    return prev_sum
-    
+    return ans
+
 
 individual_predictions = np.array([[0.0 for i in range(1000)] for j in range(300)])
 
 prev_sum=np.array([0.0 for i in range(1000)])
 accuracy_values=[]
-noOfStumps=5
+stumps=[]
+
+noOfStumps=300
 for i in range(noOfStumps):
-    prev_sum=decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions,prev_sum=prev_sum,accuracy_values=accuracy_values)
+    stumps.append(decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions,prev_sum=prev_sum,accuracy_values=accuracy_values))
 
+# print(accuracy_values)
 
+max_accuracy=0
+for i in range(noOfStumps):
+    if(max_accuracy<accuracy_values[i]):
+        max_accuracy=accuracy_values[i]
+        best_stump=stumps[i]
 
-
-# for i in range(noOfStumps):
-#     correct=0
-#     for j in range(1000):
-#         prev_sum[j]+=individual_predictions[i][j]
-#         if(prev_sum[j]<0 and y_val[j]==-1):
-#             correct+=1
-#         elif(prev_sum[j]>0 and y_val[j]==1):
-#             correct+=1
-#     accuracy_values.append(correct/10)
-#     print(f"accurracy",correct/10)
+# best_stump=stumps[accuracy_values.index(max(accuracy_values))]
+# print(best_stump)
+correct=0
+for i in range(y_test.size):
+    if(x_test[best_stump[0]][i]<=best_stump[1] and y_test[i]==best_stump[2]):
+        correct+=100
+    elif(x_test[best_stump[0]][i]>best_stump[1] and y_test[i]==best_stump[3]):
+        correct+=100
+print(f"accurracy on test set",correct/y_test.size)
 
 stumps_range = range(1, noOfStumps+1)
-
 plt.figure(figsize=(10, 5))
 plt.plot(stumps_range, accuracy_values, marker='o')
 plt.title('Validation Set Accuracy vs Number of Stumps')
