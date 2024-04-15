@@ -88,7 +88,7 @@ class Node:
         self.weight=weight
 
 
-def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions):
+def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_sum,accuracy_values):
     mn=1
     for i in range(5):
         unique_values=[]
@@ -156,26 +156,39 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions):
         else:
             individual_predictions[stumpNo][i]=alpha*ans[3]
     
-
-individual_predictions = np.array([[0.0 for i in range(1000)] for j in range(300)])
-
-noOfStumps=5
-for i in range(noOfStumps):
-    decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions)
-
-accuracy_values=[]
-
-prev_sum=np.array([0.0 for i in range(1000)])
-for i in range(noOfStumps):
     correct=0
     for j in range(1000):
-        prev_sum[j]+=individual_predictions[i][j]
+        prev_sum[j]+=individual_predictions[stumpNo][j]
         if(prev_sum[j]<0 and y_val[j]==-1):
             correct+=1
         elif(prev_sum[j]>0 and y_val[j]==1):
             correct+=1
     accuracy_values.append(correct/10)
     print(f"accurracy",correct/10)
+    return prev_sum
+    
+
+individual_predictions = np.array([[0.0 for i in range(1000)] for j in range(300)])
+
+prev_sum=np.array([0.0 for i in range(1000)])
+accuracy_values=[]
+noOfStumps=5
+for i in range(noOfStumps):
+    prev_sum=decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions,prev_sum=prev_sum,accuracy_values=accuracy_values)
+
+
+
+
+# for i in range(noOfStumps):
+#     correct=0
+#     for j in range(1000):
+#         prev_sum[j]+=individual_predictions[i][j]
+#         if(prev_sum[j]<0 and y_val[j]==-1):
+#             correct+=1
+#         elif(prev_sum[j]>0 and y_val[j]==1):
+#             correct+=1
+#     accuracy_values.append(correct/10)
+#     print(f"accurracy",correct/10)
 
 stumps_range = range(1, noOfStumps+1)
 
