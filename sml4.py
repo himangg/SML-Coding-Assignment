@@ -55,7 +55,7 @@ y_test=np.array(y_test_recon)
 x_val=np.array(x_val_recon)
 y_val=np.array(y_val_recon)
 
-print(f'X_train_reshaped shape: {x_train.shape}')
+# print(f'X_train_reshaped shape: {x_train.shape}')
 X=x_train
 X=X.T   
 
@@ -72,12 +72,14 @@ Up = U[:, :p]
 Y = np.dot(Up.T,X)
 x_val = np.dot(U[:,  :p].T, (x_val.T-mean))
 x_test = np.dot(U[:,  :p].T, (x_test.T-mean))
-print(Y.shape)
-print(x_val.shape)
+# print(Y.shape)
+# print(x_val.shape)
 
 #assign initial weights
 for i in range(Y[0].size):
     weights.append(1/y_train.size)
+
+weights=np.array(weights)
 
 class Node:
     def __init__(self,feature_index=None,threshold=None,left=None,right=None,value=None,weight=None):
@@ -94,29 +96,21 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
     for i in range(5):
         unique_values=[]
         for j in range(y_train.size):
-            unique_values.append(Y[i][j])
+            unique_values.append([Y[i][j],y_train[j]])
         unique_values=np.array(unique_values)
-        unique_values.sort(axis=0)
+        unique_values=unique_values[np.argsort(unique_values[:, 0])]
+
         case_indexes=[]
         for j in range(1000):
             case_indexes.append(random.randint(0,y_train.size-2))
+
         for j in case_indexes:
-            split=(unique_values[j]+unique_values[j+1])/2
-            left_1=0
-            left_0=0
-            right_1=0
-            right_0=0
-            for k in range(y_train.size):
-                if(Y[i][k]<=split):
-                    if(y_train[k]==1):
-                        left_1+=weights[k]
-                    else:
-                        left_0+=weights[k]
-                else:
-                    if(y_train[k]==1):
-                        right_1+=weights[k]
-                    else:
-                        right_0+=weights[k]
+            split=(unique_values[j][0]+unique_values[j+1][0])/2
+
+            left_1 = np.sum(weights[(Y[i] <= split) & (y_train == 1)])
+            left_0 = np.sum(weights[(Y[i] <= split) & (y_train == -1)])
+            right_1 = np.sum(weights[(Y[i] > split) & (y_train == 1)])
+            right_0 = np.sum(weights[(Y[i] > split) & (y_train == -1)])
                 
             if(left_1>left_0):
                 left_split_region_mode=1
@@ -127,19 +121,13 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
             else:
                 right_split_region_mode=-1
 
-            incorrectly_classified=[]
-            incorrect=0
-            total=0
-            for k in range(y_train.size):
-                total+=weights[k]
-                if(Y[i][k]<=split and y_train[k]!=left_split_region_mode):
-                    # print(Y[i][k])    
-                    incorrect+=weights[k]
-                    incorrectly_classified.append(k)
-                elif(Y[i][k]>split and y_train[k]!=right_split_region_mode):
-                    # print(Y[i][k])
-                    incorrect+=weights[k]
-                    incorrectly_classified.append(k)
+            incorrect_mask = ((Y[i] <= split) & (y_train != left_split_region_mode)) | ((Y[i] > split) & (y_train != right_split_region_mode))
+            incorrect_weights = weights[incorrect_mask]
+
+            incorrect = np.sum(incorrect_weights)
+            total = np.sum(weights)
+            incorrectly_classified = np.where(incorrect_mask)[0]
+
             weighted_miss_classification_error=incorrect/total
             if(weighted_miss_classification_error<mn):
                 mn=weighted_miss_classification_error
@@ -147,7 +135,7 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
                 ans=[i,split,left_split_region_mode,right_split_region_mode]
 
     alpha=math.log((1-mn)/mn)
-    print(f"alpha:",alpha)
+    print(f"Alpha for tree",stumpNo+1,":",alpha)
     for i in ans_incorrectly_classified:
         weights[i]*=(1-mn)/mn
 
@@ -165,7 +153,7 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
         elif(prev_sum[j]>0 and y_val[j]==1):
             correct+=1
     accuracy_values.append(correct/20)
-    print(f"accurracy",correct/20)
+    print(f"Accurracy for tree",stumpNo+1,":",correct/20)
     return ans
 
 
@@ -195,7 +183,7 @@ for i in range(y_test.size):
         correct+=100
     elif(x_test[best_stump[0]][i]>best_stump[1] and y_test[i]==best_stump[3]):
         correct+=100
-print(f"accurracy on test set",correct/y_test.size)
+print(f"Accurracy on Test Set:",correct/y_test.size)
 
 stumps_range = range(1, noOfStumps+1)
 plt.figure(figsize=(10, 5))
@@ -203,7 +191,7 @@ plt.plot(stumps_range, accuracy_values, marker='o')
 plt.title('Validation Set Accuracy vs Number of Stumps')
 plt.xlabel('Number of Stumps')
 plt.ylabel('Accuracy (%)')
-plt.xticks(stumps_range)
-plt.ylim(95, 100)
+plt.xticks(range(0, noOfStumps+1, 25))
+plt.ylim(99, 100)
 plt.grid(True)
 plt.show()
