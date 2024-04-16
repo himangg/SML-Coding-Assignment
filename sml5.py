@@ -186,21 +186,21 @@ for i in range(noOfStumps):
 
 print(MSEs)
 
-minMSE=0
-for i in range(noOfStumps):
-    if(minMSE<MSEs[i]):
-        minMSE=MSEs[i]
-        best_stump=stumps[i]
+# minMSE=0
+# for i in range(noOfStumps):
+#     if(minMSE<MSEs[i]):
+#         minMSE=MSEs[i]
+#         best_stump=stumps[i]
 
-# best_stump=stumps[accuracy_values.index(max(accuracy_values))]
-# print(best_stump)
-correct=0
-for i in range(y_test.size):
-    if(x_test[best_stump[0]][i]<=best_stump[1] and y_test[i]==best_stump[2]):
-        correct+=100
-    elif(x_test[best_stump[0]][i]>best_stump[1] and y_test[i]==best_stump[3]):
-        correct+=100
-print(f"accurracy on test set",correct/y_test.size)
+# # best_stump=stumps[accuracy_values.index(max(accuracy_values))]
+# # print(best_stump)
+# correct=0
+# for i in range(y_test.size):
+#     if(x_test[best_stump[0]][i]<=best_stump[1] and y_test[i]==best_stump[2]):
+#         correct+=100
+#     elif(x_test[best_stump[0]][i]>best_stump[1] and y_test[i]==best_stump[3]):
+#         correct+=100
+# print(f"accurracy on test set",correct/y_test.size)
 
 stumps_range = range(1, noOfStumps+1)
 plt.figure(figsize=(10, 5))
