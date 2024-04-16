@@ -20,24 +20,25 @@ x_val_recon=[]
 y_val_recon=[]
 weights=[]
 
-count=0
+count1=0
+count0=0
 for i in range(60000):
-    if(count<1000):
-        if y_train[i]==0:
+    if y_train[i]==0:
+        if(count0<1000):
             x_val_recon.append(x_train[i])
             y_val_recon.append(-1)
-            count+=1
-        if y_train[i]==1:
-            x_val_recon.append(x_train[i])
-            y_val_recon.append(y_train[i])
-            count+=1
-    else:
-        if y_train[i]==0:
+            count0+=1
+        else:
             x_train_recon.append(x_train[i])
             y_train_recon.append(-1)
-        if y_train[i]==1:
+    elif y_train[i]==1:
+        if(count1<1000):
+            x_val_recon.append(x_train[i])
+            y_val_recon.append(1)
+            count1+=1
+        else:
             x_train_recon.append(x_train[i])
-            y_train_recon.append(y_train[i])
+            y_train_recon.append(1)
 
 for i in range(10000):
     if y_test[i]==0:
@@ -150,27 +151,27 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
     for i in ans_incorrectly_classified:
         weights[i]*=(1-mn)/mn
 
-    for i in range(1000):
+    for i in range(2000):
         if(x_val[ans[0]][i]<=ans[1]):
             individual_predictions[stumpNo][i]=alpha*ans[2]
         else:
             individual_predictions[stumpNo][i]=alpha*ans[3]
     
     correct=0
-    for j in range(1000):
+    for j in range(2000):
         prev_sum[j]+=individual_predictions[stumpNo][j]
         if(prev_sum[j]<0 and y_val[j]==-1):
             correct+=1
         elif(prev_sum[j]>0 and y_val[j]==1):
             correct+=1
-    accuracy_values.append(correct/10)
-    print(f"accurracy",correct/10)
+    accuracy_values.append(correct/20)
+    print(f"accurracy",correct/20)
     return ans
 
 
-individual_predictions = np.array([[0.0 for i in range(1000)] for j in range(300)])
+individual_predictions = np.array([[0.0 for i in range(2000)] for j in range(300)])
 
-prev_sum=np.array([0.0 for i in range(1000)])
+prev_sum=np.array([0.0 for i in range(2000)])
 accuracy_values=[]
 stumps=[]
 
@@ -183,7 +184,7 @@ for i in range(noOfStumps):
 max_accuracy=0
 for i in range(noOfStumps):
     if(max_accuracy<accuracy_values[i]):
-        max_accuracy=accuracy_values[i]
+        max_accuracy=accuracy_values[i] 
         best_stump=stumps[i]
 
 # best_stump=stumps[accuracy_values.index(max(accuracy_values))]
