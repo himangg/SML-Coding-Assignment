@@ -91,7 +91,7 @@ class Node:
         self.weight=weight
 
 
-def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_sum,accuracy_values):
+def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_sum,accuracy_values,alphas):
     mn=1
     for i in range(5):
         unique_values=[]
@@ -135,6 +135,7 @@ def decision_stump(stumpNo,Y,y_train,weights,x_val,individual_predictions,prev_s
                 ans=[i,split,left_split_region_mode,right_split_region_mode]
 
     alpha=math.log((1-mn)/mn)
+    alphas.append(alpha)
     print(f"Alpha for tree",stumpNo+1,":",alpha)
     for i in ans_incorrectly_classified:
         weights[i]*=(1-mn)/mn
@@ -164,8 +165,9 @@ accuracy_values=[]
 stumps=[]
 
 noOfStumps=300
+alphas=[]
 for i in range(noOfStumps):
-    stumps.append(decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions,prev_sum=prev_sum,accuracy_values=accuracy_values))
+    stumps.append(decision_stump(i,Y,y_train,weights=weights,x_val=x_val,individual_predictions=individual_predictions,prev_sum=prev_sum,accuracy_values=accuracy_values,alphas=alphas))
 
 # print(accuracy_values)
 
@@ -174,15 +176,28 @@ for i in range(noOfStumps):
     if(max_accuracy<accuracy_values[i]):
         max_accuracy=accuracy_values[i] 
         best_stump=stumps[i]
+        best_stump_no=i
 
 # best_stump=stumps[accuracy_values.index(max(accuracy_values))]
 # print(best_stump)
+
+individual_predictions_test=np.array([[0.0 for i in range(y_test.size)] for j in range(300)])
+prev_sum_test=np.array([0.0 for i in range(y_test.size)])
+for k in range(best_stump_no+1):
+    for i in range(y_test.size):
+        if(x_test[stumps[k][0]][i]<=stumps[k][1]):
+            individual_predictions_test[k][i]=alphas[k]*stumps[k][2]
+        else:
+            individual_predictions_test[k][i]=alphas[k]*stumps[k][3]
+    for j in range(y_test.size):
+        prev_sum_test[j]+=individual_predictions_test[k][j]
+
 correct=0
-for i in range(y_test.size):
-    if(x_test[best_stump[0]][i]<=best_stump[1] and y_test[i]==best_stump[2]):
-        correct+=100
-    elif(x_test[best_stump[0]][i]>best_stump[1] and y_test[i]==best_stump[3]):
-        correct+=100
+for j in range(y_test.size):
+    if(prev_sum_test[j]<0 and y_test[j]==-1):
+        correct+=1
+    elif(prev_sum_test[j]>0 and y_test[j]==1):
+        correct+=1
 print(f"Accurracy on Test Set:",correct/y_test.size)
 
 stumps_range = range(1, noOfStumps+1)
